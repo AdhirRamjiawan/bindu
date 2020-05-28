@@ -2,7 +2,9 @@ using System;
 using System.Diagnostics;
 using Gtk;
 using System.Text;
+using System.Linq;
 using UI = Gtk.Builder.ObjectAttribute;
+using System.Threading.Tasks;
 
 namespace bindu
 {
@@ -11,8 +13,7 @@ namespace bindu
         [UI] private Entry txtDownloadUrl = null;
         [UI] private Entry txtDestinationPath = null;
         [UI] private Button btnDownload = null;
-
-        private int _counter;
+        [UI] private ProgressBar pbDownload = null;
 
         public MainWindow() : this(new Builder("MainWindow.glade")) { }
 
@@ -29,27 +30,31 @@ namespace bindu
         {
             try
             {
-                WgetCommand command = 
-                    new WgetCommandBuilder()
-                    .DestinationPrefix(txtDestinationPath.Text)
-                    .DownloadUrl(txtDownloadUrl.Text)
-                    .Build();
+                btnDownload.SetStateFlags(StateFlags.Insensitive, true);
+                Task.Run(()=>{
+                    WgetCommand command = 
+                        new WgetCommandBuilder()
+                        .DestinationPrefix(txtDestinationPath.Text)
+                        .DownloadUrl(txtDownloadUrl.Text)
+                        .Build();
 
-                var startInfo = new ProcessStartInfo(command.Command, command.Parameters);
-                startInfo.UseShellExecute = false;
-                startInfo.RedirectStandardOutput = true;
-                startInfo.CreateNoWindow = true;
+                    Process process = new Process();
+                    process.StartInfo = new ProcessStartInfo(command.Command, command.Parameters);
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.CreateNoWindow = true;
+                    process.OutputDataReceived += new DataReceivedEventHandler(WgetOutput_Handler);
+                    
 
-                var process = Process.Start(startInfo);
-                StringBuilder outputBuilder = new StringBuilder();
+                    process.Start();
+                    process.BeginOutputReadLine();
 
-                while(!process.StandardOutput.EndOfStream)
-                    outputBuilder.Append(process.StandardOutput.ReadLine());
-
-
-                Console.WriteLine(outputBuilder.ToString());
-
-                process.WaitForExit();
+                    process.WaitForExit();
+                }).GetAwaiter().OnCompleted(() => {
+                    btnDownload.SetStateFlags(StateFlags.Normal, true);    
+                });
+                
+                
             }
             catch (Exception exception)
             {
@@ -57,6 +62,26 @@ namespace bindu
                 dialog.Run();
                 dialog.Dispose();
             }
+        }
+
+        private void WgetOutput_Handler(object sender, DataReceivedEventArgs e)
+        {
+            Console.WriteLine(e.Data);
+            if (String.IsNullOrEmpty(e.Data))
+                return;
+
+            Gtk.Application.Invoke(delegate {
+                string[] progParts = e.Data.Split(' ');
+                double perc =  0;
+                
+                string strPerc = progParts.Where(p => p.Contains("%")).FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(strPerc))
+                {
+                    perc = Double.Parse(strPerc.Replace("%",""));
+                    pbDownload.Fraction = perc / 100;
+                }
+            });
         }
 
         private void Window_DeleteEvent(object sender, DeleteEventArgs a)

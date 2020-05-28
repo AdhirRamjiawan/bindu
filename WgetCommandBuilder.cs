@@ -36,7 +36,9 @@ namespace bindu
         public WgetCommand Build()
         {
             WgetCommand command = new WgetCommand();
-            command.Parameters =  string.Format("wget -P {0} -c {1}", _prefix, _url);
+
+            /* This command will only work on bash or linux at the moment. */
+            command.Parameters =  string.Format("wget -o /dev/stdout -P {0} -c {1} ", _prefix, _url);
             return command;
         }
 

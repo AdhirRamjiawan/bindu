@@ -13,6 +13,7 @@ namespace bindu
     {
         private string _prefix {get;set;}
         private string _url {get;set;}
+        private bool _isLinux {get;set;}
 
         public WgetCommandBuilder()
         {
@@ -33,12 +34,20 @@ namespace bindu
             return this;
         }
 
+        public WgetCommandBuilder IsLinux(bool isLinux)
+        {
+            _isLinux = isLinux;
+            return this;
+        }
+
         public WgetCommand Build()
         {
             WgetCommand command = new WgetCommand();
 
+            string standardOutput = _isLinux ? "-o /dev/stdout" : "";
+
             /* This command will only work on bash or linux at the moment. */
-            command.Parameters =  string.Format("wget -o /dev/stdout -P {0} -c {1} ", _prefix, _url);
+            command.Parameters =  string.Format("wget {0} -P {1} -c {2} ", standardOutput, _prefix, _url);
             return command;
         }
 

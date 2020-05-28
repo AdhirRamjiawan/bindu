@@ -36,6 +36,7 @@ namespace bindu
                         new WgetCommandBuilder()
                         .DestinationPrefix(txtDestinationPath.Text)
                         .DownloadUrl(txtDownloadUrl.Text)
+                        .IsLinux(true)
                         .Build();
 
                     Process process = new Process();

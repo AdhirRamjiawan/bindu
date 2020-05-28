@@ -14,6 +14,7 @@ namespace bindu
         [UI] private Entry txtDestinationPath = null;
         [UI] private Button btnDownload = null;
         [UI] private ProgressBar pbDownload = null;
+        [UI] private Label lblDownloadPercentage = null;
 
         public MainWindow() : this(new Builder("MainWindow.glade")) { }
 
@@ -31,14 +32,14 @@ namespace bindu
             try
             {
                 btnDownload.SetStateFlags(StateFlags.Insensitive, true);
-                Task.Run(()=>{
-                    WgetCommand command = 
+                WgetCommand command = 
                         new WgetCommandBuilder()
                         .DestinationPrefix(txtDestinationPath.Text)
                         .DownloadUrl(txtDownloadUrl.Text)
                         .IsLinux(true)
                         .Build();
 
+                Task.Run(()=>{
                     Process process = new Process();
                     process.StartInfo = new ProcessStartInfo(command.Command, command.Parameters);
                     process.StartInfo.UseShellExecute = false;
@@ -81,6 +82,7 @@ namespace bindu
                 {
                     perc = Double.Parse(strPerc.Replace("%",""));
                     pbDownload.Fraction = perc / 100;
+                    lblDownloadPercentage.Text = string.Format("{0}%", perc);
                 }
             });
         }

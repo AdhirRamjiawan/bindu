@@ -21,7 +21,7 @@ namespace bindu
 
         public WgetCommandBuilder DestinationPrefix(string prefix)
         {
-            _prefix = String.IsNullOrEmpty(prefix) ? "" : prefix;
+            _prefix = String.IsNullOrEmpty(prefix) ? "" :  string.Format("-P {0}", prefix);
             return this;
         }
 
@@ -30,7 +30,7 @@ namespace bindu
             if (string.IsNullOrEmpty(url))
                 throw new Exception("Wget: Download url is required!");
 
-            _url = url;
+            _url = string.Format("-c {0}", url);
             return this;
         }
 
@@ -47,7 +47,7 @@ namespace bindu
             string standardOutput = _isLinux ? "-o /dev/stdout" : "";
 
             /* This command will only work on bash or linux at the moment. */
-            command.Parameters =  string.Format("wget {0} -P {1} -c {2} ", standardOutput, _prefix, _url);
+            command.Parameters =  string.Format("{0} {1} {2}", standardOutput, _prefix,  _url);
             return command;
         }
 

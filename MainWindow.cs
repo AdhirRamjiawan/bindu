@@ -3,19 +3,13 @@ using System.Diagnostics;
 using Gtk;
 using System.Text;
 using System.Linq;
-using UI = Gtk.Builder.ObjectAttribute;
+
 using System.Threading.Tasks;
 
 namespace bindu
 {
-    class MainWindow : Window
+    partial class MainWindow : Window
     {
-        [UI] private Entry txtDownloadUrl = null;
-        [UI] private Entry txtDestinationPath = null;
-        [UI] private Button btnDownload = null;
-        [UI] private ProgressBar pbDownload = null;
-        [UI] private Label lblDownloadPercentage = null;
-
         public MainWindow() : this(new Builder("MainWindow.glade")) { }
 
         private MainWindow(Builder builder) : base(builder.GetObject("MainWindow").Handle)

@@ -15,7 +15,6 @@ namespace bindu
         public MainWindow() : this(new Builder("MainWindow.glade")) 
         { 
             _storage = LocalStorage.GetInstance();
-            _storage.Persist();
         }
 
         private MainWindow(Builder builder) : base(builder.GetObject("MainWindow").Handle)

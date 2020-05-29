@@ -34,6 +34,15 @@ namespace bindu
             if (_instance == null)
                 _instance = new LocalStorage();
 
+            try
+            {
+                _instance.Load();
+            }
+            catch(FileNotFoundException)
+            {
+                _instance.Persist();
+            }
+
             return _instance;
         }
 

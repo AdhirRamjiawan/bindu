@@ -54,29 +54,27 @@ namespace bindu
             }
             catch (Exception exception)
             {
-                MessageDialog dialog = new MessageDialog(this, DialogFlags.Modal, MessageType.Error, ButtonsType.Close, exception.Message);
-                dialog.Run();
-                dialog.Dispose();
+                using(var dialog = MessageDialogFactory.CreateError(this, exception))
+                    dialog.Run();
             }
         }
 
         private void WgetOutput_Handler(object sender, DataReceivedEventArgs e)
         {
+            WgetOutputParser parser = new WgetOutputParser();
+            WgetOutput output;
+
             Console.WriteLine(e.Data);
             if (String.IsNullOrEmpty(e.Data))
                 return;
 
             Gtk.Application.Invoke(delegate {
-                string[] progParts = e.Data.Split(' ');
-                double perc =  0;
-                
-                string strPerc = progParts.Where(p => p.Contains("%")).FirstOrDefault();
+                output = parser.Parse(e.Data);
 
-                if (!string.IsNullOrEmpty(strPerc))
+                if (output != null)
                 {
-                    perc = Double.Parse(strPerc.Replace("%",""));
-                    pbDownload.Fraction = perc / 100;
-                    lblDownloadPercentage.Text = string.Format("{0}%", perc);
+                    pbDownload.Fraction = output.PercentageComplete / 100;
+                    lblDownloadPercentage.Text = string.Format("{0}%", output.PercentageComplete);
                 }
             });
         }

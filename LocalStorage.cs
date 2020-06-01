@@ -9,12 +9,13 @@ namespace bindu
     public interface ILocalStorage
     {
         void Persist();
-        LocalStorageData Load();
+        void Load();
+        LocalStorageData GetData();
     }
 
     public class LocalStorageData
     {
-        public List<String> PendingDownloadUrls {get;set;} = new List<String>();
+        public HashSet<String> PendingDownloadUrls {get;set;} = new HashSet<String>();
     }
 
     public class LocalStorage : ILocalStorage
@@ -48,22 +49,19 @@ namespace bindu
 
         public void Persist()
         {
-            using (StreamWriter stream = new StreamWriter(File.OpenWrite(_fileName)))
-            {
-                string jsonData = JsonSerializer.Serialize(_data, typeof(LocalStorageData));
-                stream.WriteLine(jsonData);
-            }
+            string jsonData = JsonSerializer.Serialize(_data, typeof(LocalStorageData));
+            File.WriteAllText(_fileName, jsonData);
         }
 
-        public LocalStorageData Load()
+        public LocalStorageData GetData() =>  _data;
+
+        public void Load()
         {
             using (StreamReader stream = new StreamReader(File.OpenRead(_fileName)))
             {
                 _data = (LocalStorageData)JsonSerializer
                     .Deserialize(stream.ReadToEnd(), typeof(LocalStorageData));
             }
-
-            return _data;
         }
 
     }

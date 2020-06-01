@@ -10,5 +10,6 @@ namespace bindu
         [UI] private Button btnDownload = null;
         [UI] private ProgressBar pbDownload = null;
         [UI] private Label lblDownloadPercentage = null;
+        [UI] private ListBox lstPendingDownloads = null;
     }
 }

@@ -5,6 +5,7 @@ using System.Text;
 using System.Linq;
 
 using System.Threading.Tasks;
+using System.Web;
 
 namespace bindu
 {
@@ -24,13 +25,28 @@ namespace bindu
             DeleteEvent += Window_DeleteEvent;
 
             btnDownload.Clicked += btnDownload_Clicked;
+/* 
+            var row = new ListBoxRow();
+            var b = new Box(Orientation.Horizontal, 50);
+            b.Add(new Label("test 1"));
+            row.Add(b);
+            lstPendingDownloads.SelectionMode = SelectionMode.Single;
+            lstPendingDownloads.Add(row); */
         }
 
         private void btnDownload_Clicked(object sender, EventArgs e)
         {
             try
             {
-                btnDownload.SetStateFlags(StateFlags.Insensitive, true);
+                string encodedUrl = HttpUtility.UrlEncode(txtDownloadUrl.Text);
+                
+                if (!isUrlPending(txtDownloadUrl.Text))
+                {
+                    _storage.GetData().PendingDownloadUrls.Add(encodedUrl);
+                    _storage.Persist();
+                }
+
+                toggleInput(true);
                 WgetCommand command = 
                         new WgetCommandBuilder()
                         .DestinationPrefix(txtDestinationPath.Text)
@@ -52,7 +68,10 @@ namespace bindu
 
                     process.WaitForExit();
                 }).GetAwaiter().OnCompleted(() => {
-                    btnDownload.SetStateFlags(StateFlags.Normal, true);    
+                    toggleInput(false);
+
+                    _storage.GetData().PendingDownloadUrls.Remove(encodedUrl);
+                    _storage.Persist();
                 });
                 
                 
@@ -88,6 +107,23 @@ namespace bindu
         {
             //Console.WriteLine(txtDownloadUrl.Text);
             Application.Quit();
+        }
+
+        private void toggleInput(bool lockUI)
+        {
+            StateFlags flags = lockUI ? StateFlags.Insensitive : StateFlags.Normal;
+
+            txtDownloadUrl.SetStateFlags(flags, true);
+            txtDestinationPath.SetStateFlags(flags, true);
+            btnDownload.SetStateFlags(flags, true);
+        }
+
+        private bool isUrlPending(string url)
+        {
+            bool result = _storage.GetData()
+                .PendingDownloadUrls
+                .Where(u => u == url).Any();
+            return result;
         }
 
     }
